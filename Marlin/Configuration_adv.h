@@ -3274,7 +3274,7 @@
    * Comment *_STALL_SENSITIVITY to disable sensorless homing for that axis.
    * @section tmc/stallguard
    */
-  //#define SENSORLESS_HOMING // StallGuard capable drivers only
+  #define SENSORLESS_HOMING // StallGuard capable drivers only
 
   #if EITHER(SENSORLESS_HOMING, SENSORLESS_PROBING)
     // TMC2209: 0...255. TMC2130: -64...63
@@ -3293,6 +3293,10 @@
     //#define V_STALL_SENSITIVITY  8
     //#define W_STALL_SENSITIVITY  8
     //#define SPI_ENDSTOPS              // TMC2130 only
+    #define I2C_ENDSTOPS
+    #define I2C_X_ENDSTOPP_ADDR 0xA0
+    #define I2C_Y_ENDSTOPP_ADDR 0xA1
+    #define I2C_Z_ENDSTOPP_ADDR 0xA2
     //#define IMPROVE_HOMING_RELIABILITY
   #endif
 

@@ -824,6 +824,23 @@ void idle(bool no_stepper_sleep/*=false*/) {
       LOOP_L_N(i, 4) if (endstops.tmc_spi_homing_check()) break; // Read SGT 4 times per idle loop
   #endif
 
+  // TODO: Update!!
+  #if ENABLED(I2C_ENDSTOPS)
+    {
+    static millis_t i2cpem_next_update_ms;
+    if (planner.has_blocks_queued()) {
+      const millis_t ms = millis();
+      if (ELAPSED(ms, i2cpem_next_update_ms)) {
+        LOOP_L_N(i, 4) if (endstops.tmc_i2c_homing_check()) break; //endstops.tmc_i2c_homing_check(); //I2CPEM.update();
+        i2cpem_next_update_ms = ms + I2CPE_MIN_UPD_TIME_MS;
+      }
+    }
+  }
+  //if (endstops.tmc_i2c_homing.any && TERN1(IMPROVE_HOMING_RELIABILITY, ELAPSED(millis(), sg_guard_period)))
+  //    LOOP_L_N(i, 4) if (endstops.tmc_i2c_homing_check()) break; // Read SGT 4 times per idle loop
+  #endif
+
+
   // Handle SD Card insert / remove
   TERN_(SDSUPPORT, card.manage_media());
 
