@@ -2111,6 +2111,9 @@
     #if ENABLED(SPI_ENDSTOPS)
       #define X_SPI_SENSORLESS X_SENSORLESS
     #endif
+    #if ENABLED(I2C_ENDSTOPS)
+      #define X_I2C_SENSORLESS X_SENSORLESS
+    #endif
     #ifndef X_INTERPOLATE
       #define X_INTERPOLATE INTERPOLATE
     #endif
@@ -2149,6 +2152,9 @@
     #endif
     #if ENABLED(SPI_ENDSTOPS)
       #define Y_SPI_SENSORLESS Y_SENSORLESS
+    #endif
+    #if ENABLED(I2C_ENDSTOPS)
+      #define Y_I2C_SENSORLESS Y_SENSORLESS
     #endif
     #ifndef Y_INTERPOLATE
       #define Y_INTERPOLATE INTERPOLATE
@@ -2196,6 +2202,9 @@
     #endif
     #if ENABLED(SPI_ENDSTOPS)
       #define Z_SPI_SENSORLESS Z_SENSORLESS
+    #endif
+    #if ENABLED(I2C_ENDSTOPS)
+      #define Z_I2C_SENSORLESS Z_SENSORLESS
     #endif
     #ifndef Z_INTERPOLATE
       #define Z_INTERPOLATE INTERPOLATE

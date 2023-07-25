@@ -1595,6 +1595,37 @@ void prepare_line_to_destination() {
         }
       #endif
 
+      #if ENABLED(I2C_ENDSTOPS)
+        switch (axis) {
+          case X_AXIS: if (ENABLED(X_I2C_SENSORLESS)) endstops.tmc_i2c_homing.x = true; break;
+          #if HAS_Y_AXIS
+            case Y_AXIS: if (ENABLED(Y_I2C_SENSORLESS)) endstops.tmc_i2c_homing.y = true; break;
+          #endif
+          #if HAS_Z_AXIS
+            case Z_AXIS: if (ENABLED(Z_I2C_SENSORLESS)) endstops.tmc_i2c_homing.z = true; break;
+          #endif
+          #if HAS_I_AXIS
+            case I_AXIS: if (ENABLED(I_SPI_SENSORLESS)) endstops.tmc_spi_homing.i = true; break;
+          #endif
+          #if HAS_J_AXIS
+            case J_AXIS: if (ENABLED(J_SPI_SENSORLESS)) endstops.tmc_spi_homing.j = true; break;
+          #endif
+          #if HAS_K_AXIS
+            case K_AXIS: if (ENABLED(K_SPI_SENSORLESS)) endstops.tmc_spi_homing.k = true; break;
+          #endif
+          #if HAS_U_AXIS
+            case U_AXIS: if (ENABLED(U_SPI_SENSORLESS)) endstops.tmc_spi_homing.u = true; break;
+          #endif
+          #if HAS_V_AXIS
+            case V_AXIS: if (ENABLED(V_SPI_SENSORLESS)) endstops.tmc_spi_homing.v = true; break;
+          #endif
+          #if HAS_W_AXIS
+            case W_AXIS: if (ENABLED(W_SPI_SENSORLESS)) endstops.tmc_spi_homing.w = true; break;
+          #endif
+          default: break;
+        }
+      #endif
+
       TERN_(IMPROVE_HOMING_RELIABILITY, sg_guard_period = millis() + default_sg_guard_duration);
 
       return stealth_states;

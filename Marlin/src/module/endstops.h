@@ -252,6 +252,18 @@ class Endstops {
       static void clear_endstop_state();
       static bool tmc_spi_homing_check();
     #endif
+
+    #if ENABLED(I2C_ENDSTOPS)
+      typedef struct {
+        union {
+          bool any;
+          struct { bool NUM_AXIS_LIST(x:1, y:1, z:1, i:1, j:1, k:1); };
+        };
+      } tmc_i2c_homing_t;
+      static tmc_i2c_homing_t tmc_i2c_homing;
+      static void clear_endstop_state();
+      static bool tmc_i2c_homing_check();
+    #endif
   public:
     // Basic functions for Sensorless Homing
     #if USE_SENSORLESS

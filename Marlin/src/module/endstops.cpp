@@ -31,6 +31,8 @@
 #include "temperature.h"
 #include "../lcd/marlinui.h"
 
+#include "../feature/endstop_i2c.h"
+
 #define DEBUG_OUT BOTH(USE_SENSORLESS, DEBUG_LEVELING_FEATURE)
 #include "../core/debug_out.h"
 
@@ -99,6 +101,11 @@ Endstops::endstop_mask_t Endstops::live_state = 0;
 #if ENABLED(SPI_ENDSTOPS)
   Endstops::tmc_spi_homing_t Endstops::tmc_spi_homing; // = 0
 #endif
+
+#if ENABLED(I2C_ENDSTOPS)
+  Endstops::tmc_i2c_homing_t Endstops::tmc_i2c_homing; // = 0
+#endif
+
 #if ENABLED(IMPROVE_HOMING_RELIABILITY)
   millis_t sg_guard_period; // = 0
 #endif
@@ -579,6 +586,8 @@ void __O2 Endstops::report_states() {
   SERIAL_ECHOLNPGM(STR_M119_REPORT);
   #define ES_REPORT(S) print_es_state(READ_ENDSTOP(S##_PIN) != S##_ENDSTOP_INVERTING, F(STR_##S))
   #if HAS_X_MIN
+    SERIAL_ECHOLNPGM(READ_ENDSTOP(X_MIN) ? "Read is true" : "Read is false");
+    SERIAL_ECHOLNPGM(X_MIN_ENDSTOP_INVERTING ? "Inv is true" : "Inv is false");
     ES_REPORT(X_MIN);
   #endif
   #if HAS_X2_MIN
@@ -591,6 +600,8 @@ void __O2 Endstops::report_states() {
     ES_REPORT(X2_MAX);
   #endif
   #if HAS_Y_MIN
+    SERIAL_ECHOLNPGM(READ_ENDSTOP(X_MIN) ? "Read is true" : "Read is false");
+    SERIAL_ECHOLNPGM(Y_MIN_ENDSTOP_INVERTING ? "Inv is true" : "Inv is false");
     ES_REPORT(Y_MIN);
   #endif
   #if HAS_Y2_MIN
@@ -603,6 +614,8 @@ void __O2 Endstops::report_states() {
     ES_REPORT(Y2_MAX);
   #endif
   #if HAS_Z_MIN
+    SERIAL_ECHOLNPGM(READ_ENDSTOP(X_MIN) ? "Read is true" : "Read is false");
+    SERIAL_ECHOLNPGM(Z_MIN_ENDSTOP_INVERTING ? "Inv is true" : "Inv is false");
     ES_REPORT(Z_MIN);
   #endif
   #if HAS_Z2_MIN
@@ -754,8 +767,23 @@ void Endstops::update() {
   /**
    * Check and update endstops
    */
-  #if HAS_X_MIN && !X_SPI_SENSORLESS
-    UPDATE_ENDSTOP_BIT(X, MIN);
+  #if HAS_X_MIN && (!X_SPI_SENSORLESS || !X_I2C_SENSORLESS)
+    //UPDATE_ENDSTOP_BIT(X, MIN);
+    uint8_t realEndstoppTest = READ_ENDSTOP(_ENDSTOP_PIN(X, MIN));
+    uint8_t invEndstoppTest = _ENDSTOP_INVERTING(X, MIN);
+    bool resultCatcher = (realEndstoppTest != invEndstoppTest);
+    if(resultCatcher || live_state > 0){
+      uint8_t testEndstoppps = _ENDSTOP(X, MIN);
+      if(!!testEndstoppps){
+        SET_BIT_TO(live_state, testEndstoppps, resultCatcher);
+      }
+      else{
+        SET_BIT_TO(live_state, testEndstoppps, resultCatcher);
+      }
+    }
+    else{
+      SET_BIT_TO(live_state, _ENDSTOP(X, MIN), resultCatcher);
+    }
     #if ENABLED(X_DUAL_ENDSTOPS)
       #if HAS_X2_MIN
         UPDATE_ENDSTOP_BIT(X2, MIN);
@@ -765,7 +793,7 @@ void Endstops::update() {
     #endif
   #endif
 
-  #if HAS_X_MAX && !X_SPI_SENSORLESS
+  #if HAS_X_MAX && (!X_SPI_SENSORLESS || !X_I2C_SENSORLESS)
     UPDATE_ENDSTOP_BIT(X, MAX);
     #if ENABLED(X_DUAL_ENDSTOPS)
       #if HAS_X2_MAX
@@ -776,7 +804,7 @@ void Endstops::update() {
     #endif
   #endif
 
-  #if HAS_Y_MIN && !Y_SPI_SENSORLESS
+  #if HAS_Y_MIN && (!Y_SPI_SENSORLESS || !Y_I2C_SENSORLESS)
     UPDATE_ENDSTOP_BIT(Y, MIN);
     #if ENABLED(Y_DUAL_ENDSTOPS)
       #if HAS_Y2_MIN
@@ -787,7 +815,7 @@ void Endstops::update() {
     #endif
   #endif
 
-  #if HAS_Y_MAX && !Y_SPI_SENSORLESS
+  #if HAS_Y_MAX && (!Y_SPI_SENSORLESS || !Y_I2C_SENSORLESS)
     UPDATE_ENDSTOP_BIT(Y, MAX);
     #if ENABLED(Y_DUAL_ENDSTOPS)
       #if HAS_Y2_MAX
@@ -798,7 +826,7 @@ void Endstops::update() {
     #endif
   #endif
 
-  #if HAS_Z_MIN && NONE(Z_SPI_SENSORLESS, Z_MIN_PROBE_USES_Z_MIN_ENDSTOP_PIN)
+  #if HAS_Z_MIN && NONE(Z_SPI_SENSORLESS, Z_I2C_SENSORLESS, Z_MIN_PROBE_USES_Z_MIN_ENDSTOP_PIN)
     UPDATE_ENDSTOP_BIT(Z, MIN);
     #if ENABLED(Z_MULTI_ENDSTOPS)
       #if HAS_Z2_MIN
@@ -829,7 +857,7 @@ void Endstops::update() {
       UPDATE_ENDSTOP_BIT(Z, TERN(USES_Z_MIN_PROBE_PIN, MIN_PROBE, MIN));
   #endif
 
-  #if HAS_Z_MAX && !Z_SPI_SENSORLESS
+  #if HAS_Z_MAX && (!Z_SPI_SENSORLESS || !Z_I2C_SENSORLESS)
     // Check both Z dual endstops
     #if ENABLED(Z_MULTI_ENDSTOPS)
       UPDATE_ENDSTOP_BIT(Z, MAX);
@@ -1043,6 +1071,7 @@ void Endstops::update() {
   #define _ENDSTOP_HIT(AXIS, MINMAX) SBI(hit_state, _ENDSTOP(AXIS, MINMAX))
 
   // Call the endstop triggered routine for single endstops
+  /*if(getEndStopStatus(_AXIS(AXIS))) { \*/
   #define PROCESS_ENDSTOP(AXIS, MINMAX) do { \
     if (TEST_ENDSTOP(_ENDSTOP(AXIS, MINMAX))) { \
       _ENDSTOP_HIT(AXIS, MINMAX); \
@@ -1425,6 +1454,106 @@ void Endstops::update() {
   }
 
 #endif // SPI_ENDSTOPS
+
+#if ENABLED(I2C_ENDSTOPS)
+
+  // Called from idle() to read Trinamic stall states
+  //TODO: Hier fehlen änderungen!
+  bool Endstops::tmc_i2c_homing_check() {
+    bool hit = false;
+    #if X_I2C_SENSORLESS
+    //if (tmc_i2c_homing.x && (getEndStopStatus(I2C_X_ENDSTOPP_ADDR)
+      if ((getEndStopStatus(I2C_X_ENDSTOPP_ADDR)
+        #if ANY(CORE_IS_XY, MARKFORGED_XY, MARKFORGED_YX) && Y_I2C_SENSORLESS
+          || getEndStopStatus(I2C_Y_ENDSTOPP_ADDR)
+        #elif CORE_IS_XZ && Z_SPI_SENSORLESS
+          || getEndStopStatus(I2C_Z_ENDSTOPP_ADDR)
+        #endif
+      )) {
+        SBI(live_state, X_ENDSTOP);
+        hit = true;
+      }
+    #endif
+    #if Y_I2C_SENSORLESS
+      if (tmc_i2c_homing.y && (getEndStopStatus(I2C_Y_ENDSTOPP_ADDR)
+        #if ANY(CORE_IS_XY, MARKFORGED_XY, MARKFORGED_YX) && X_I2C_SENSORLESS
+          || getEndStopStatus(I2C_X_ENDSTOPP_ADDR)
+        #elif CORE_IS_YZ && Z_SPI_SENSORLESS
+          || getEndStopStatus(I2C_Z_ENDSTOPP_ADDR)
+        #endif
+      )) {
+        SBI(live_state, Y_ENDSTOP);
+        hit = true;
+      }
+    #endif
+    #if Z_I2C_SENSORLESS
+      if (tmc_i2c_homing.z && (getEndStopStatus(I2C_Z_ENDSTOPP_ADDR)
+        #if CORE_IS_XZ && X_SPI_SENSORLESS
+          || getEndStopStatus(I2C_X_ENDSTOPP_ADDR)
+        #elif CORE_IS_YZ && Y_SPI_SENSORLESS
+          || getEndStopStatus(I2C_Y_ENDSTOPP_ADDR)
+        #endif
+      )) {
+        SBI(live_state, Z_ENDSTOP);
+        hit = true;
+      }
+    #endif
+    //TODO:Remove or Update
+    #if I_SPI_SENSORLESS
+      if (tmc_spi_homing.i && stepperI.test_stall_status()) {
+        SBI(live_state, I_ENDSTOP);
+        hit = true;
+      }
+    #endif
+    #if J_SPI_SENSORLESS
+      if (tmc_spi_homing.j && stepperJ.test_stall_status()) {
+        SBI(live_state, J_ENDSTOP);
+        hit = true;
+      }
+    #endif
+    #if K_SPI_SENSORLESS
+      if (tmc_spi_homing.k && stepperK.test_stall_status()) {
+        SBI(live_state, K_ENDSTOP);
+        hit = true;
+      }
+    #endif
+    #if U_SPI_SENSORLESS
+      if (tmc_spi_homing.u && stepperU.test_stall_status()) {
+        SBI(live_state, U_ENDSTOP);
+        hit = true;
+      }
+    #endif
+    #if V_SPI_SENSORLESS
+      if (tmc_spi_homing.v && stepperV.test_stall_status()) {
+        SBI(live_state, V_ENDSTOP);
+        hit = true;
+      }
+    #endif
+    #if W_SPI_SENSORLESS
+      if (tmc_spi_homing.w && stepperW.test_stall_status()) {
+        SBI(live_state, W_ENDSTOP);
+        hit = true;
+      }
+    #endif
+
+    if (TERN0(ENDSTOP_INTERRUPTS_FEATURE, hit)) update();
+
+    return hit;
+  }
+
+  void Endstops::clear_endstop_state() {
+    TERN_(X_SPI_SENSORLESS, CBI(live_state, X_ENDSTOP));
+    TERN_(Y_SPI_SENSORLESS, CBI(live_state, Y_ENDSTOP));
+    TERN_(Z_SPI_SENSORLESS, CBI(live_state, Z_ENDSTOP));
+    TERN_(I_SPI_SENSORLESS, CBI(live_state, I_ENDSTOP));
+    TERN_(J_SPI_SENSORLESS, CBI(live_state, J_ENDSTOP));
+    TERN_(K_SPI_SENSORLESS, CBI(live_state, K_ENDSTOP));
+    TERN_(U_SPI_SENSORLESS, CBI(live_state, U_ENDSTOP));
+    TERN_(V_SPI_SENSORLESS, CBI(live_state, V_ENDSTOP));
+    TERN_(W_SPI_SENSORLESS, CBI(live_state, W_ENDSTOP));
+  }
+
+#endif // I2C_ENDSTOPS
 
 #if ENABLED(PINS_DEBUGGING)
 

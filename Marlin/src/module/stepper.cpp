@@ -161,8 +161,8 @@ stepper_flags_t Stepper::axis_enabled; // {0}
 
 block_t* Stepper::current_block; // (= nullptr) A pointer to the block currently being traced
 
-axis_bits_t Stepper::last_direction_bits, // = 0
-            Stepper::axis_did_move; // = 0
+axis_bits_t Stepper::last_direction_bits, // = 0 
+  Stepper::axis_did_move; // = 0
 
 bool Stepper::abort_current_block;
 
