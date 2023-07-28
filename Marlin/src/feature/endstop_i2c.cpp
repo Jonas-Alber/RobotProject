@@ -1,43 +1,35 @@
 #include <Wire.h>
 #include "../lcd/marlinui.h"
 
-uint8_t convertAxisToAddress(AxisEnum Axis)
-{
-    uint8_t axisAddress = 0;
-    switch (Axis)
-    {
-    case X_AXIS:
-        axisAddress = 0xA0;
-        break;
-    case Y_AXIS:
-        axisAddress = 0xA1;
-        break;
-    //case X2_AXIS:
-    //    axisAddress = 0xA2;
-    //    break;
-    //case 10:
-    //    axisAddress = 0xA3;
-    //    break;
-    }
-    return axisAddress;
-}
-
 bool getEndStopStatus(uint8_t i2c_addr)
 {
     uint8_t slaveAdress = 0x1D;
-    uint8_t triggerStatus = 0;
+    uint8_t triggerStatus[3] = {0};
+    uint8_t index = 0;
+    uint8_t returnIndex = 2;
     //uint8_t axisAddress = convertAxisToAddress(Axis);
 
     Wire.beginTransmission(slaveAdress);
     Wire.write(i2c_addr);
     Wire.endTransmission();
 
-    Wire.requestFrom(slaveAdress, uint8_t(1)); // Read-Befehl senden
+    Wire.requestFrom(slaveAdress, uint8_t(3)); // Read-Befehl senden
 
     while (Wire.available())
     {                                // Überprüfen, ob Daten verfügbar sind
-        triggerStatus = Wire.read(); // Daten lesen
+        triggerStatus[index++] = Wire.read(); // Daten lesen
     }
-
-    return triggerStatus;
+    if(triggerStatus[0] == 0){
+        SERIAL_ECHOPGM(STR_KILL_PRE);
+        SERIAL_ECHOPGM("I2C No return");
+    } 
+    else {
+    if(triggerStatus[1]== 0){
+        returnIndex = 0;
+    }else{
+        returnIndex = 1;
+    }
+    }
+        
+    return returnIndex;
 }

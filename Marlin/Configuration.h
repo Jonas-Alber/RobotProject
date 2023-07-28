@@ -960,13 +960,13 @@
   #define SCARA_SEGMENTS_PER_SECOND 200
 
   // Length of inner and outer support arms. Measure arm lengths precisely.
-  #define SCARA_LINKAGE_1 150       // (mm)
-  #define SCARA_LINKAGE_2 150       // (mm)
+  #define SCARA_LINKAGE_1 180       // (mm)
+  #define SCARA_LINKAGE_2 180       // (mm)
 
   // SCARA tower offset (position of Tower relative to bed zero position)
   // This needs to be reasonably accurate as it defines the printbed position in the SCARA space.
-  #define SCARA_OFFSET_X  100       // (mm)
-  #define SCARA_OFFSET_Y  -56       // (mm)
+  #define SCARA_OFFSET_X  -100       // (mm)
+  #define SCARA_OFFSET_Y  -110       // (mm)
 
   #if ENABLED(MORGAN_SCARA)
 
@@ -1170,14 +1170,14 @@
  * Override with M92
  *                                      X, Y, Z [, I [, J [, K...]]], E0 [, E1[, E2...]]
  */
-#define DEFAULT_AXIS_STEPS_PER_UNIT   { 80, 80, 400, 500 }
+#define DEFAULT_AXIS_STEPS_PER_UNIT   { 142, 142, 400, 500 }
 
 /**
  * Default Max Feed Rate (linear=mm/s, rotational=°/s)
  * Override with M203
  *                                      X, Y, Z [, I [, J [, K...]]], E0 [, E1[, E2...]]
  */
-#define DEFAULT_MAX_FEEDRATE          { 300, 300, 5, 25 }
+#define DEFAULT_MAX_FEEDRATE          { 30, 30, 5, 25 }//{ 300, 300, 5, 25 }
 
 //#define LIMITED_MAX_FR_EDITING        // Limit edit via M203 or LCD to DEFAULT_MAX_FEEDRATE * 2
 #if ENABLED(LIMITED_MAX_FR_EDITING)
@@ -1190,7 +1190,7 @@
  * Override with M201
  *                                      X, Y, Z [, I [, J [, K...]]], E0 [, E1[, E2...]]
  */
-#define DEFAULT_MAX_ACCELERATION      { 300, 300, 100, 1000 }
+#define DEFAULT_MAX_ACCELERATION      { 10, 10, 10, 1000 }//{ 300, 300, 100, 1000 }
 
 //#define LIMITED_MAX_ACCEL_EDITING     // Limit edit via M201 or LCD to DEFAULT_MAX_ACCELERATION * 2
 #if ENABLED(LIMITED_MAX_ACCEL_EDITING)
@@ -1648,7 +1648,7 @@
 // @section motion
 
 // Invert the stepper direction. Change (or reverse the motor connector) if an axis goes the wrong way.
-#define INVERT_X_DIR false
+#define INVERT_X_DIR true
 #define INVERT_Y_DIR true
 #define INVERT_Z_DIR false
 //#define INVERT_I_DIR false
@@ -1702,8 +1702,8 @@
 // @section geometry
 
 // The size of the printable area
-#define X_BED_SIZE 500  
-#define Y_BED_SIZE 500
+#define X_BED_SIZE 230  
+#define Y_BED_SIZE 230
 
 // Travel limits (linear=mm, rotational=°) after homing, corresponding to endstop positions.
 #define X_MIN_POS 0

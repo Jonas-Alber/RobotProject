@@ -728,7 +728,7 @@
 
 // If you want endstops to stay on (by default) even when not homing
 // enable this option. Override at any time with M120, M121.
-//#define ENDSTOPS_ALWAYS_ON_DEFAULT
+#define ENDSTOPS_ALWAYS_ON_DEFAULT
 
 // @section extras
 
@@ -2448,7 +2448,7 @@
  */
 //#define REALTIME_REPORTING_COMMANDS
 #if ENABLED(REALTIME_REPORTING_COMMANDS)
-  //#define FULL_REPORT_TO_HOST_FEATURE   // Auto-report the machine status like Grbl CNC
+  #define FULL_REPORT_TO_HOST_FEATURE   // Auto-report the machine status like Grbl CNC
 #endif
 
 // Bad Serial-connections can miss a received command by sending an 'ok'
@@ -2842,7 +2842,7 @@
   #if AXIS_IS_TMC(X)
     #define X_CURRENT       800        // (mA) RMS current. Multiply by 1.414 for peak current.
     #define X_CURRENT_HOME  X_CURRENT  // (mA) RMS current for sensorless homing
-    #define X_MICROSTEPS     16        // 0..256
+    #define X_MICROSTEPS     256        // 0..256
     #define X_RSENSE          0.11
     #define X_CHAIN_POS      -1        // -1..0: Not chained. 1: MCU MOSI connected. 2: Next in chain, ...
     //#define X_INTERPOLATE  true      // Enable to override 'INTERPOLATE' for the X axis
@@ -2862,7 +2862,7 @@
   #if AXIS_IS_TMC(Y)
     #define Y_CURRENT       800
     #define Y_CURRENT_HOME  Y_CURRENT
-    #define Y_MICROSTEPS     16
+    #define Y_MICROSTEPS     256
     #define Y_RSENSE          0.11
     #define Y_CHAIN_POS      -1
     //#define Y_INTERPOLATE  true
@@ -3294,9 +3294,11 @@
     //#define W_STALL_SENSITIVITY  8
     //#define SPI_ENDSTOPS              // TMC2130 only
     #define I2C_ENDSTOPS
-    #define I2C_X_ENDSTOPP_ADDR 0xA0
-    #define I2C_Y_ENDSTOPP_ADDR 0xA1
-    #define I2C_Z_ENDSTOPP_ADDR 0xA2
+    #define I2C_X_ENDSTOPP_ADDR 0xA3
+    #define I2C_Y_ENDSTOPP_ADDR 0xA0
+    #define I2C_X2_ENDSTOPP_ADDR 0xA2
+    #define I2C_Y2_ENDSTOPP_ADDR 0xA1
+    //#define I2C_Z_ENDSTOPP_ADDR 0xA2
     //#define IMPROVE_HOMING_RELIABILITY
   #endif
 

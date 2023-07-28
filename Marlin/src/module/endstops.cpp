@@ -586,8 +586,6 @@ void __O2 Endstops::report_states() {
   SERIAL_ECHOLNPGM(STR_M119_REPORT);
   #define ES_REPORT(S) print_es_state(READ_ENDSTOP(S##_PIN) != S##_ENDSTOP_INVERTING, F(STR_##S))
   #if HAS_X_MIN
-    SERIAL_ECHOLNPGM(READ_ENDSTOP(X_MIN) ? "Read is true" : "Read is false");
-    SERIAL_ECHOLNPGM(X_MIN_ENDSTOP_INVERTING ? "Inv is true" : "Inv is false");
     ES_REPORT(X_MIN);
   #endif
   #if HAS_X2_MIN
@@ -600,8 +598,6 @@ void __O2 Endstops::report_states() {
     ES_REPORT(X2_MAX);
   #endif
   #if HAS_Y_MIN
-    SERIAL_ECHOLNPGM(READ_ENDSTOP(X_MIN) ? "Read is true" : "Read is false");
-    SERIAL_ECHOLNPGM(Y_MIN_ENDSTOP_INVERTING ? "Inv is true" : "Inv is false");
     ES_REPORT(Y_MIN);
   #endif
   #if HAS_Y2_MIN
@@ -614,8 +610,6 @@ void __O2 Endstops::report_states() {
     ES_REPORT(Y2_MAX);
   #endif
   #if HAS_Z_MIN
-    SERIAL_ECHOLNPGM(READ_ENDSTOP(X_MIN) ? "Read is true" : "Read is false");
-    SERIAL_ECHOLNPGM(Z_MIN_ENDSTOP_INVERTING ? "Inv is true" : "Inv is false");
     ES_REPORT(Z_MIN);
   #endif
   #if HAS_Z2_MIN
@@ -767,7 +761,7 @@ void Endstops::update() {
   /**
    * Check and update endstops
    */
-  #if HAS_X_MIN && (!X_SPI_SENSORLESS || !X_I2C_SENSORLESS)
+  #if HAS_X_MIN && !X_SPI_SENSORLESS && !X_I2C_SENSORLESS
     //UPDATE_ENDSTOP_BIT(X, MIN);
     uint8_t realEndstoppTest = READ_ENDSTOP(_ENDSTOP_PIN(X, MIN));
     uint8_t invEndstoppTest = _ENDSTOP_INVERTING(X, MIN);
@@ -793,7 +787,7 @@ void Endstops::update() {
     #endif
   #endif
 
-  #if HAS_X_MAX && (!X_SPI_SENSORLESS || !X_I2C_SENSORLESS)
+  #if HAS_X_MAX && !X_SPI_SENSORLESS && !X_I2C_SENSORLESS
     UPDATE_ENDSTOP_BIT(X, MAX);
     #if ENABLED(X_DUAL_ENDSTOPS)
       #if HAS_X2_MAX
@@ -804,7 +798,7 @@ void Endstops::update() {
     #endif
   #endif
 
-  #if HAS_Y_MIN && (!Y_SPI_SENSORLESS || !Y_I2C_SENSORLESS)
+  #if HAS_Y_MIN && !Y_SPI_SENSORLESS && !Y_I2C_SENSORLESS
     UPDATE_ENDSTOP_BIT(Y, MIN);
     #if ENABLED(Y_DUAL_ENDSTOPS)
       #if HAS_Y2_MIN
@@ -815,7 +809,7 @@ void Endstops::update() {
     #endif
   #endif
 
-  #if HAS_Y_MAX && (!Y_SPI_SENSORLESS || !Y_I2C_SENSORLESS)
+  #if HAS_Y_MAX && !Y_SPI_SENSORLESS && !Y_I2C_SENSORLESS
     UPDATE_ENDSTOP_BIT(Y, MAX);
     #if ENABLED(Y_DUAL_ENDSTOPS)
       #if HAS_Y2_MAX
@@ -1475,7 +1469,7 @@ void Endstops::update() {
       }
     #endif
     #if Y_I2C_SENSORLESS
-      if (tmc_i2c_homing.y && (getEndStopStatus(I2C_Y_ENDSTOPP_ADDR)
+      if ((getEndStopStatus(I2C_Y_ENDSTOPP_ADDR)
         #if ANY(CORE_IS_XY, MARKFORGED_XY, MARKFORGED_YX) && X_I2C_SENSORLESS
           || getEndStopStatus(I2C_X_ENDSTOPP_ADDR)
         #elif CORE_IS_YZ && Z_SPI_SENSORLESS
@@ -1542,9 +1536,9 @@ void Endstops::update() {
   }
 
   void Endstops::clear_endstop_state() {
-    TERN_(X_SPI_SENSORLESS, CBI(live_state, X_ENDSTOP));
-    TERN_(Y_SPI_SENSORLESS, CBI(live_state, Y_ENDSTOP));
-    TERN_(Z_SPI_SENSORLESS, CBI(live_state, Z_ENDSTOP));
+    TERN_(X_I2C_SENSORLESS, CBI(live_state, X_ENDSTOP));
+    TERN_(Y_I2C_SENSORLESS, CBI(live_state, Y_ENDSTOP));
+    TERN_(Z_I2C_SENSORLESS, CBI(live_state, Z_ENDSTOP));
     TERN_(I_SPI_SENSORLESS, CBI(live_state, I_ENDSTOP));
     TERN_(J_SPI_SENSORLESS, CBI(live_state, J_ENDSTOP));
     TERN_(K_SPI_SENSORLESS, CBI(live_state, K_ENDSTOP));

@@ -93,7 +93,10 @@
       };
     #endif
 
-    do_blocking_move_to_xy(1.5 * max_length(X_AXIS) * x_axis_home_dir, 1.5 * max_length(Y_AXIS) * Y_HOME_DIR, fr_mm_s);
+    float xMaxLength=max_length(X_AXIS);
+    float yMaxLength=max_length(Y_AXIS);
+
+    do_blocking_move_to_xy(1.5 * xMaxLength * x_axis_home_dir, 1.5 * yMaxLength * Y_HOME_DIR, fr_mm_s);
 
     endstops.validate_homing_move();
 
@@ -539,6 +542,7 @@ void GcodeSuite::G28() {
 
   // Clear endstop state for polled stallGuard endstops
   TERN_(SPI_ENDSTOPS, endstops.clear_endstop_state());
+  TERN_(I2C_ENDSTOPS, endstops.clear_endstop_state());
 
   // Move to a height where we can use the full xy-area
   TERN_(DELTA_HOME_TO_SAFE_ZONE, do_blocking_move_to_z(delta_clip_start_height));
